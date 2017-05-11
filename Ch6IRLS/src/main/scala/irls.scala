@@ -92,23 +92,15 @@ object IRLS {
   def logReg(
     y: DenseVector[Double],
     X: DenseMatrix[Double],
-    bhat0: DenseVector[Double],
-    its: Int): DenseVector[Double] = {
-    // logistic regression is one-parameter exponential
-    // define first and second derivatives of b()
+    its: Int = 30
+  ): DenseVector[Double] = {
     def bp(x: Double): Double = sigmoid(x)
     def bpp(x: Double): Double = {
       val e = math.exp(-x)
       e / ((1.0 + e) * (1.0 + e))
     }
-    IRLS3(bp, bpp, y, X, bhat0, its)
+    IRLS3(bp, bpp, y, X, DenseVector.zeros[Double](X.cols), its)
   }
-
-  def logReg(
-    y: DenseVector[Double],
-    X: DenseMatrix[Double],
-    its: Int = 30): DenseVector[Double] =
-    logReg(y,X,DenseVector.zeros[Double](X.cols),its)
 
   def logRegR(
     y: DenseVector[Double],
@@ -133,7 +125,7 @@ object IRLS {
     val y = p map (pi => new Binomial(1, pi).draw) map (_.toDouble)
     val betahat = time { logReg(y, X) }
     println(betahat)
-    //println(logRegR(y,X))
+    // println(logRegR(y,X))
   }
 
 }
