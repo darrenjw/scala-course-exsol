@@ -42,8 +42,10 @@ object Metrop {
     ret 
   }
 
-  def ll(x: GenSeq[Double])(mean: Double,stdev: Double): Double =
-    x map (Gaussian(mean,stdev).logPdf(_)) reduce (_+_)
+  def ll(x: GenSeq[Double])(mean: Double,stdev: Double): Double = {
+    val gau = Gaussian(mean,stdev)
+    x map (gau.logPdf) reduce (_+_)
+  }
 
   def main(args: Array[String]): Unit = {
     println("hello")
