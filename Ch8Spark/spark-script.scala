@@ -7,6 +7,7 @@ spark-shell --master local[4] < spark-script.scala
 
 import org.apache.spark.ml.linalg._
 
+/*
 val df = spark.read.csv("spambase.data")
 df.show(5)
 
@@ -15,6 +16,22 @@ val dflr = (df map {row => (
   Vectors.dense(row.toSeq.toArray.take(57) map (
     _.asInstanceOf[String].toDouble)))}).
   toDF("label","features").persist
+dflr show 5
+*/
+
+val df = spark.read.
+  option("inferSchema","true").
+  csv("spambase.data").
+  withColumnRenamed("_c57","y")
+
+df show 5
+
+import org.apache.spark.ml.feature.RFormula
+val dflr = new RFormula().
+  setFormula("y ~ .").
+  fit(df).transform(df).
+  select("label","features")
+
 dflr show 5
 
 // start with a basic non-regularised fit
