@@ -47,18 +47,22 @@ object Metrop {
     x map (gau.logPdf) reduce (_+_)
   }
 
+  def nextIter(cov: DenseMatrix[Double], llp: DenseVector[Double] => Double)(
+    x0: DenseVector[Double]): DenseVector[Double] = {
+    val xp = MultivariateGaussian(x0, cov).draw
+    val l0 = llp(x0)
+    val lp = llp(xp)
+    val u = Uniform(0,1).draw
+    if (math.log(u) < lp - l0) xp else x0
+  }
+
   def main(args: Array[String]): Unit = {
     println("hello")
     val x = Gaussian(10.0,2.0).sample(10000)
     val llx = ll(x.par) _
     def llv(s: DenseVector[Double]): Double = llx(s(0),s(1))
     val cov = DenseMatrix.eye[Double](2)*0.001
-    val mcmc = MarkovChain.
-      metropolisHastings(DenseVector(1.0,1.0),
-        (x: DenseVector[Double]) =>
-        MultivariateGaussian(x,cov))(
-        x => llv(x)).
-      steps
+    val mcmc = Stream.iterate(DenseVector(1.0,1.0))(nextIter(cov,llv))
     val out = time { mcmc.
       drop(2000).
       take(10000).
